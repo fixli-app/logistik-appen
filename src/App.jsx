@@ -959,7 +959,7 @@ function App() {
           <h1 style={{textAlign: 'center', fontWeight: '800'}}>
             {authMode === 'login' ? 'Log In' : authMode === 'register' ? 'Create Account' : 'Reset Password'}
           </h1>
-          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096', marginBottom: '25px'}}>Höganäs Logistics Portal</p>
+          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096', marginBottom: '25px'}}>Höganäs Internal Logistics Portal</p>
           
           {authError && <div style={{background: '#fed7d7', color: '#c53030', padding: '10px', borderRadius: '5px', marginBottom: '15px', fontSize: '13px'}}>{authError}</div>}
           
@@ -1018,7 +1018,7 @@ function App() {
     <div style={containerStyle}>
       
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <div style={{fontSize: '22px', fontWeight: '800', letterSpacing: '-0.02em', color: '#1e293b'}}>Höganäs Logistics</div>
+        <div style={{fontSize: '22px', fontWeight: '800', letterSpacing: '-0.02em', color: '#1e293b'}}>Höganäs Internal Logistics Portal</div>
         
         <div style={{position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center'}} onClick={() => setView('notifications')}>
           <div style={{
