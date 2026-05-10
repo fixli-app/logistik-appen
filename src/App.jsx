@@ -5,6 +5,270 @@ import { Html5QrcodeScanner } from 'html5-qrcode'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts' 
 import { isWithinInterval, startOfDay, endOfDay, subDays, parseISO } from 'date-fns' 
 
+// ============================================================
+// STYLING & DESIGN SYSTEM 
+// ============================================================
+
+if (typeof document !== 'undefined' && !document.getElementById('hoganas-modern-css')) {
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+  document.head.appendChild(link)
+
+  const s = document.createElement('style')
+  s.id = 'hoganas-modern-css'
+  s.innerHTML = `
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body, #root { background: #f8fafc; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(1200px 600px at -10% -20%, #e0e7ff 0%, transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, #dbeafe 0%, transparent 55%),
+        linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+      background-attachment: fixed;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 16px;
+    }
+    button { font-family: inherit; transition: transform .12s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease; letter-spacing: .01em; }
+    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px -10px rgba(15,23,42,.25); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    input, select, textarea { font-family: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #4f46e5 !important;
+      box-shadow: 0 0 0 4px rgba(79,70,229,.15);
+    }
+    a { transition: opacity .15s; }
+    a:hover { opacity: .8; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    @keyframes hg-fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    section { animation: hg-fadein .3s ease both; }
+  `
+  document.head.appendChild(s)
+}
+
+const containerStyle = {
+  width: '100%',
+  maxWidth: '760px',
+  margin: 'auto',
+  padding: '32px 20px 80px',
+  boxSizing: 'border-box',
+  fontFamily: "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
+  color: '#0f172a',
+  minHeight: '100vh'
+}
+
+const navStyle = {
+  display: 'flex',
+  gap: '6px',
+  marginBottom: '32px',
+  flexWrap: 'wrap',
+  padding: '6px',
+  background: 'rgba(255,255,255,0.85)',
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '12px',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  boxShadow: '0 4px 15px -10px rgba(15,23,42,0.1)'
+}
+
+const navBtn = {
+  flex: 1,
+  padding: '10px 14px',
+  cursor: 'pointer',
+  border: '1px solid transparent',
+  borderRadius: '8px',
+  background: 'transparent',
+  color: '#475569',
+  fontSize: '13px',
+  fontWeight: 600,
+  letterSpacing: '0.01em'
+}
+
+const activeNavBtn = {
+  ...navBtn,
+  background: '#0f172a',
+  color: '#fff',
+  borderColor: 'transparent',
+  boxShadow: '0 4px 12px -4px rgba(15,23,42,0.4)'
+}
+
+const scannerBtn = {
+  ...navBtn,
+  background: '#ef4444',
+  color: '#fff',
+  borderColor: 'transparent',
+  boxShadow: '0 4px 12px -4px rgba(239,68,68,0.4)'
+}
+
+const cardStyle = {
+  background: '#fff',
+  padding: '24px',
+  borderRadius: '16px',
+  marginBottom: '24px',
+  border: '1px solid #e2e8f0',
+  boxShadow: '0 10px 25px -15px rgba(15,23,42,0.1), 0 4px 6px -4px rgba(15,23,42,0.05)'
+}
+
+const inputStyle = {
+  display: 'block',
+  width: '100%',
+  padding: '12px 16px',
+  marginBottom: '16px',
+  borderRadius: '10px',
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  color: '#0f172a',
+  boxSizing: 'border-box',
+  fontSize: '15px',
+  fontFamily: 'inherit'
+}
+
+const selectStyle = { ...inputStyle, padding: '10px 16px', marginBottom: '0', fontSize: '14px' }
+
+const filterLabelStyle = {
+  display: 'block',
+  fontSize: '11px',
+  fontWeight: 700,
+  marginBottom: '6px',
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em'
+}
+
+const btnStyle = {
+  width: '100%',
+  padding: '14px',
+  background: '#4f46e5',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  fontSize: '15px',
+  fontWeight: 600,
+  letterSpacing: '0.01em',
+  boxShadow: '0 8px 16px -6px rgba(79,70,229,0.4)'
+}
+
+const shipmentCard = {
+  background: '#fff',
+  border: '1px solid #e2e8f0',
+  padding: '18px 20px',
+  borderRadius: '12px',
+  marginBottom: '14px',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  transition: 'transform .15s ease, box-shadow .2s ease, border-color .2s',
+  boxShadow: '0 2px 8px -4px rgba(15,23,42,0.08)'
+}
+
+const smallBtn = {
+  padding: '8px 16px',
+  cursor: 'pointer',
+  border: 'none',
+  borderRadius: '8px',
+  background: '#0f172a',
+  color: '#fff',
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.01em',
+  boxShadow: '0 2px 6px -2px rgba(15,23,42,0.3)'
+}
+
+const fileLink = {
+  display: 'inline-block',
+  fontSize: '12px',
+  color: '#4f46e5',
+  textDecoration: 'none',
+  textAlign: 'left',
+  fontWeight: 500,
+  background: '#eef2ff',
+  padding: '6px 12px',
+  borderRadius: '6px',
+  wordBreak: 'break-all',
+  border: '1px solid #c7d2fe'
+}
+
+const cancelBtn = {
+  width: '100%',
+  padding: '14px',
+  background: '#fff',
+  color: '#475569',
+  border: '1px solid #cbd5e1',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  fontSize: '15px',
+  fontWeight: 600
+}
+
+const receiptStyle = {
+  textAlign: 'center',
+  padding: '30px 20px',
+  background: '#f0fdf4',
+  border: '1px solid #a7f3d0',
+  borderRadius: '16px',
+  marginTop: '20px',
+  boxShadow: '0 10px 25px -10px rgba(16,185,129,0.2)'
+}
+
+const printBtn = {
+  display: 'inline-block',
+  marginTop: '16px',
+  padding: '10px 18px',
+  background: '#fff',
+  border: '1px solid #10b981',
+  color: '#047857',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  fontWeight: 600,
+  fontSize: '14px'
+}
+
+const statusBadge = (status) => {
+  let bg = '#fef9c3'; let col = '#854d0e'; let border = '#fde047';
+  if (status === 'Picked Up')      { bg = '#e0e7ff'; col = '#3730a3'; border = '#c7d2fe'; }
+  else if (status === 'Booked')    { bg = '#ffedd5'; col = '#9a3412'; border = '#fdba74'; }
+  else if (status === 'Sent')      { bg = '#dcfce7'; col = '#166534'; border = '#86efac'; }
+  else if (status === 'Rejected')  { bg = '#fee2e2'; col = '#991b1b'; border = '#fca5a5'; }
+
+  return {
+    background: bg,
+    color: col,
+    padding: '4px 10px',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+    border: `1px solid ${border}`,
+    display: 'inline-block'
+  }
+}
+
+// ============================================================
+// HUVUDAPPLIKATIONEN
+// ============================================================
+
 const getFiles = (fileString) => {
   if (!fileString) return []
   try {
@@ -16,7 +280,6 @@ const getFiles = (fileString) => {
 }
 
 function App() {
-  // --- AUTHENTICATION STATE ---
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('hoganasUser');
     return saved ? JSON.parse(saved) : null;
@@ -27,17 +290,14 @@ function App() {
   const [authName, setAuthName] = useState('');
   const [authError, setAuthError] = useState('');
   
-  // --- ADMIN STATE ---
   const [allUsers, setAllUsers] = useState([]);
   const [adminPassInputs, setAdminPassInputs] = useState({}); 
 
-  // --- PROFILE STATE ---
   const [profilePassword, setProfilePassword] = useState('');
   const [profileConfirmPassword, setProfileConfirmPassword] = useState(''); 
   const [profileReqRole, setProfileReqRole] = useState('logistics');
   const [profileReqComment, setProfileReqComment] = useState('');
 
-  // --- APP STATE ---
   const [shipments, setShipments] = useState([])
   const [view, setView] = useState('user') 
   
@@ -49,7 +309,6 @@ function App() {
   const [searchScannerActive, setSearchScannerActive] = useState(false)
   const searchScannerRef = useRef(null)
 
-  // NYTT: Dashboard Custom Date Filter
   const [startDate, setStartDate] = useState('') 
   const [endDate, setEndDate] = useState('') 
 
@@ -70,14 +329,11 @@ function App() {
   const [commentInput, setCommentInput] = useState('') 
   const [commentFile, setCommentFile] = useState(null) 
 
-  // --- NOTIFICATIONS STATE ---
   const [notifications, setNotifications] = useState([]);
 
-  // --- NOTIFICATION HELPERS ---
   const fetchNotifications = useCallback(async () => {
     if (!currentUser) return;
     
-    // Admin ser admin-notiser OCH sina egna, Logistik ser logistik-notiser OCH sina egna, User ser bara sina egna
     const targetEmails = [currentUser.email];
     if (currentUser.role === 'admin') targetEmails.push('admin');
     if (currentUser.role === 'logistics' || currentUser.role === 'admin') targetEmails.push('logistics');
@@ -115,7 +371,6 @@ function App() {
   const handleNotificationClick = (notif) => {
     markAsRead(notif.id);
     if (notif.shipment_id) {
-      // Navigera till rätt vy och expandera paketet
       if (currentUser.role === 'user') {
         setView('user');
       } else {
@@ -128,12 +383,11 @@ function App() {
     }
   };
 
-  // --- AUTH LOGIC ---
   useEffect(() => {
     if (currentUser) {
       setForm(prev => ({ ...prev, name: currentUser.name, email: currentUser.email }));
       if (currentUser.role === 'user' && view === 'admin') setView('user'); 
-      fetchNotifications(); // Hämta notiser vid inloggning
+      fetchNotifications();
     }
   }, [currentUser, view, fetchNotifications]);
 
@@ -212,7 +466,6 @@ function App() {
     setAuthPassword('');
   }
 
-  // --- PROFILE LOGIC ---
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     
@@ -253,7 +506,6 @@ function App() {
     setLoading(false);
   }
 
-  // --- ADMIN LOGIC ---
   const fetchUsers = useCallback(async () => {
     if (currentUser?.role !== 'admin') return;
     const { data } = await supabase.from('app_users').select('*').order('created_at', { ascending: false });
@@ -295,7 +547,6 @@ function App() {
     fetchUsers();
   }
 
-  // --- SHIPMENTS LOGIC ---
   const fetchShipments = useCallback(async () => {
     const { data, error } = await supabase
       .from('shipments')
@@ -349,7 +600,7 @@ function App() {
       
       const { data } = await supabase.from('shipments').select('comments').eq('id', id).single()
       const currentComments = data?.comments || ''
-      const newCommentEntry = `[${new Date().toLocaleDateString('en-US')}] ⚠️ SYSTEM: Package rejected by Logistics. Reason: ${reason}`
+      const newCommentEntry = `[${new Date().toLocaleDateString('en-US')}] SYSTEM: Package rejected by Logistics. Reason: ${reason}`
       updateData.comments = currentComments ? `${currentComments}\n${newCommentEntry}` : newCommentEntry
       notificationMsg = `WARNING: Package #${id} was rejected by logistics. Please review.`;
     }
@@ -358,7 +609,7 @@ function App() {
       updateData.status = 'Waiting'
       const { data } = await supabase.from('shipments').select('comments').eq('id', id).single()
       const currentComments = data?.comments || ''
-      const newCommentEntry = `[${new Date().toLocaleDateString('en-US')}] 🔄 SYSTEM: Package marked as resolved by sender and is waiting for pickup.`
+      const newCommentEntry = `[${new Date().toLocaleDateString('en-US')}] SYSTEM: Package marked as resolved by sender and is waiting for pickup.`
       updateData.comments = currentComments ? `${currentComments}\n${newCommentEntry}` : newCommentEntry
       
       sendNotification('logistics', `Package #${id} Resumed`, `Sender marked rejected package #${id} as resolved.`, id);
@@ -379,7 +630,7 @@ function App() {
       const { error: uploadError } = await supabase.storage.from('package-docs').upload(fileName, commentFile);
       if (!uploadError) {
         const fileUrl = supabase.storage.from('package-docs').getPublicUrl(fileName).data.publicUrl;
-        fileInfo = `\n📎 Attached file to comment: ${fileUrl}`;
+        fileInfo = `\nAttached file to comment: ${fileUrl}`;
       } else {
         alert("Could not upload file to comment.");
       }
@@ -409,7 +660,7 @@ function App() {
         if (isNaN(id)) return; 
         supabase.from('shipments').select('sender_email').eq('id', id).single().then(({data}) => {
           if (data) handleStatusUpdate(id, 'Picked Up', data.sender_email);
-          alert(`✅ Package #${id} is picked up! Scan next.`);
+          alert(`Package #${id} is picked up! Scan next.`);
         });
       }, () => {})
     }
@@ -558,7 +809,6 @@ function App() {
     s.sender_email.toLowerCase() === currentUser.email.toLowerCase()
   )
 
-  // --- STATS FILTERING LOGIC ---
   const statsShipments = useMemo(() => {
     if (!startDate && !endDate) return shipments;
     
@@ -632,30 +882,30 @@ function App() {
       
       {isSenderView && s.status === 'Rejected' && (
         <div style={{background: '#fed7d7', padding: '15px', borderRadius: '6px', marginBottom: '15px', border: '1px solid #fc8181'}}>
-          <strong style={{color: '#c53030', fontSize: '16px'}}>⚠️ Package rejected!</strong>
+          <strong style={{color: '#c53030', fontSize: '16px'}}>Package rejected!</strong>
           <p style={{fontSize: '13px', margin: '5px 0 10px 0', color: '#742a2a'}}>Read the comments from logistics below, resolve the issue (you can attach missing documents directly in a new comment), and then click the button to resubmit.</p>
           <button onClick={() => handleStatusUpdate(s.id, 'Resumed', s.sender_email)} style={{...smallBtn, background: '#38a169', width: '100%', padding: '10px'}}>
-            ✅ Mark as resolved & Resubmit
+            Mark as resolved & Resubmit
           </button>
         </div>
       )}
 
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px', background: '#f7fafc', padding: '10px', borderRadius: '8px'}}>
         <div>
-          <p style={{margin: '0 0 5px 0'}}><strong>📍 Pickup Location:</strong> {s.location}</p>
-          {s.destination_country && <p style={{margin: '0 0 5px 0'}}><strong>🌍 Country:</strong> {s.destination_country}</p>}
-          <p style={{margin: '0 0 5px 0', color: '#718096'}}><strong>🕒 Created:</strong> {new Date(s.created_at).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'})}</p>
+          <p style={{margin: '0 0 5px 0'}}><strong>Pickup Location:</strong> {s.location}</p>
+          {s.destination_country && <p style={{margin: '0 0 5px 0'}}><strong>Country:</strong> {s.destination_country}</p>}
+          <p style={{margin: '0 0 5px 0', color: '#718096'}}><strong>Created:</strong> {new Date(s.created_at).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'})}</p>
         </div>
         <div>
-          {s.carrier && <p style={{margin: '0 0 5px 0'}}><strong>📦 Carrier:</strong> {s.carrier}</p>}
-          {s.tracking_id && <p style={{margin: '0 0 5px 0', color: '#2b6cb0'}}><strong>🚚 Tracking:</strong> {s.tracking_id}</p>}
-          {s.picked_up_by && <p style={{margin: '0 0 5px 0', color: '#38a169'}}><strong>🙋 Picked up by:</strong> {s.picked_up_by}</p>}
+          {s.carrier && <p style={{margin: '0 0 5px 0'}}><strong>Carrier:</strong> {s.carrier}</p>}
+          {s.tracking_id && <p style={{margin: '0 0 5px 0', color: '#2b6cb0'}}><strong>Tracking:</strong> {s.tracking_id}</p>}
+          {s.picked_up_by && <p style={{margin: '0 0 5px 0', color: '#38a169'}}><strong>Picked up by:</strong> {s.picked_up_by}</p>}
         </div>
       </div>
       
       {attachedFiles.length > 0 && (
         <div style={{marginBottom: '15px'}}>
-          <strong>📎 Initial Files:</strong>
+          <strong>Initial Files:</strong>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '5px'}}>
             {attachedFiles.map((f, i) => (
               <a key={i} href={f.url} target="_blank" rel="noreferrer" style={fileLink}>
@@ -667,12 +917,12 @@ function App() {
       )}
 
       <div style={{background: '#fff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0'}}>
-        <strong>💬 Chat & Comments:</strong>
+        <strong>Chat & Comments:</strong>
         {s.comments ? (
            <div style={{whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '13px', color: '#4a5568', margin: '10px 0', wordBreak: 'break-word'}}>
              {s.comments.split(/(https?:\/\/[^\s]+)/g).map((part, i) => 
                 part.match(/https?:\/\//) 
-                  ? <a key={i} href={part} target="_blank" rel="noreferrer" style={{color: '#3182ce', textDecoration: 'underline'}}>Open attached link 📎</a> 
+                  ? <a key={i} href={part} target="_blank" rel="noreferrer" style={{color: '#3182ce', textDecoration: 'underline'}}>Open attached link</a> 
                   : part
              )}
            </div>
@@ -694,7 +944,7 @@ function App() {
             </button>
           </div>
           <div style={{fontSize: '12px', color: '#4a5568'}}>
-            📎 Attach file to comment (optional): 
+            Attach file to comment (optional): 
             <input id={`comment-file-${s.id}`} type="file" onChange={e => setCommentFile(e.target.files[0])} style={{fontSize: '11px', marginTop: '5px'}} />
           </div>
         </div>
@@ -706,10 +956,10 @@ function App() {
     return (
       <div style={{...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
         <div style={{...cardStyle, width: '100%', maxWidth: '400px'}}>
-          <h1 style={{textAlign: 'center'}}>
+          <h1 style={{textAlign: 'center', fontWeight: '800'}}>
             {authMode === 'login' ? 'Log In' : authMode === 'register' ? 'Create Account' : 'Reset Password'}
           </h1>
-          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096'}}>Internal Logistics Portal</p>
+          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096', marginBottom: '25px'}}>Höganäs Logistics Portal</p>
           
           {authError && <div style={{background: '#fed7d7', color: '#c53030', padding: '10px', borderRadius: '5px', marginBottom: '15px', fontSize: '13px'}}>{authError}</div>}
           
@@ -768,14 +1018,23 @@ function App() {
     <div style={containerStyle}>
       
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <div style={{fontSize: '20px', fontWeight: 'bold'}}>Logistics Portal</div>
+        <div style={{fontSize: '22px', fontWeight: '800', letterSpacing: '-0.02em', color: '#1e293b'}}>Höganäs Logistics</div>
         
-        <div style={{position: 'relative', cursor: 'pointer'}} onClick={() => setView('notifications')}>
-          <span style={{fontSize: '24px'}}>🔔</span>
+        <div style={{position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center'}} onClick={() => setView('notifications')}>
+          <div style={{
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
           {unreadCount > 0 && (
             <div style={{
-              position: 'absolute', top: '-5px', right: '-5px', background: '#e53e3e', color: 'white', 
-              borderRadius: '50%', padding: '2px 6px', fontSize: '10px', fontWeight: 'bold'
+              position: 'absolute', top: '-2px', right: '-2px', background: '#ef4444', color: 'white', 
+              borderRadius: '50%', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', 
+              justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', border: '2px solid #f8fafc'
             }}>
               {unreadCount}
             </div>
@@ -784,22 +1043,22 @@ function App() {
       </div>
 
       <nav style={navStyle}>
-        <button onClick={() => setView('user')} style={view === 'user' ? activeNavBtn : navBtn}>📦 Sender</button>
+        <button onClick={() => setView('user')} style={view === 'user' ? activeNavBtn : navBtn}>Sender</button>
         
         {['logistics', 'admin'].includes(currentUser.role) && (
           <>
-            <button onClick={() => setView('logistics')} style={view === 'logistics' ? activeNavBtn : navBtn}>🚚 Logistics</button>
-            <button onClick={() => setView('stats')} style={view === 'stats' ? activeNavBtn : navBtn}>📊 Dashboard</button>
-            <button onClick={() => setView('scanner')} style={view === 'scanner' ? activeNavBtn : navBtn}>📷 Bulk Scan</button>
+            <button onClick={() => setView('logistics')} style={view === 'logistics' ? activeNavBtn : navBtn}>Logistics</button>
+            <button onClick={() => setView('stats')} style={view === 'stats' ? activeNavBtn : navBtn}>Dashboard</button>
+            <button onClick={() => setView('scanner')} style={view === 'scanner' ? activeNavBtn : navBtn}>Bulk Scan</button>
           </>
         )}
         
-        <button onClick={() => setView('profile')} style={view === 'profile' ? activeNavBtn : navBtn}>👤 Profile</button>
+        <button onClick={() => setView('profile')} style={view === 'profile' ? activeNavBtn : navBtn}>Profile</button>
         {currentUser.role === 'admin' && (
-          <button onClick={() => setView('admin')} style={view === 'admin' ? activeNavBtn : navBtn}>⚙️ Admin</button>
+          <button onClick={() => setView('admin')} style={view === 'admin' ? activeNavBtn : navBtn}>Admin</button>
         )}
 
-        <button onClick={handleLogout} style={{...navBtn, background: '#e2e8f0', color: '#4a5568', flex: '0.5'}}>🚪 Log Out</button>
+        <button onClick={handleLogout} style={{...navBtn, background: '#e2e8f0', color: '#4a5568', flex: '0.5'}}>Log Out</button>
       </nav>
 
       {/* --- NOTIFICATIONS VIEW --- */}
@@ -823,9 +1082,9 @@ function App() {
                   key={notif.id} 
                   onClick={() => handleNotificationClick(notif)}
                   style={{
-                    padding: '12px', 
+                    padding: '16px', 
                     borderBottom: '1px solid #e2e8f0', 
-                    background: notif.is_read ? 'transparent' : '#ebf8ff',
+                    background: notif.is_read ? 'transparent' : '#f8fafc',
                     cursor: 'pointer',
                     transition: 'background 0.2s'
                   }}
@@ -834,7 +1093,7 @@ function App() {
                     <strong style={{color: notif.is_read ? '#4a5568' : '#2b6cb0'}}>{notif.title}</strong>
                     <span style={{fontSize: '11px', color: '#a0aec0'}}>{new Date(notif.created_at).toLocaleString('en-US', {dateStyle: 'short', timeStyle: 'short'})}</span>
                   </div>
-                  <p style={{margin: '5px 0 0 0', fontSize: '13px', color: '#4a5568'}}>{notif.message}</p>
+                  <p style={{margin: '6px 0 0 0', fontSize: '14px', color: '#4a5568', lineHeight: '1.4'}}>{notif.message}</p>
                 </div>
               ))}
             </div>
@@ -937,7 +1196,7 @@ function App() {
               />
             </div>
             
-            <label style={{display: 'block', marginBottom: '10px', fontSize: '14px'}}>
+            <label style={{display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '500'}}>
               Attach documents (Select multiple, or click again to add more):
               <input 
                 id="file-input"
@@ -950,23 +1209,23 @@ function App() {
                     e.target.value = ''
                   }
                 }} 
-                style={{marginTop: '5px', display: 'block'}} 
+                style={{marginTop: '8px', display: 'block'}} 
               />
             </label>
 
             {form.files.length > 0 && (
-              <div style={{marginBottom: '15px', padding: '10px', background: '#edf2f7', borderRadius: '6px'}}>
-                <div style={{fontSize: '13px', fontWeight: 'bold', color: '#2d3748'}}>Files to be attached:</div>
-                <ul style={{margin: '5px 0 0 0', paddingLeft: '20px', fontSize: '13px'}}>
+              <div style={{marginBottom: '15px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                <div style={{fontSize: '13px', fontWeight: '600', color: '#475569'}}>Files to be attached:</div>
+                <ul style={{margin: '8px 0 0 0', paddingLeft: '20px', fontSize: '13px', color: '#334155'}}>
                   {form.files.map((file, idx) => (
-                    <li key={idx} style={{marginBottom: '4px'}}>
+                    <li key={idx} style={{marginBottom: '6px'}}>
                       {file.name}
                       <button 
                         type="button" 
                         onClick={() => removeSelectedFile(idx)} 
-                        style={{marginLeft: '10px', color: '#e53e3e', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold'}}
+                        style={{marginLeft: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '12px'}}
                       >
-                        ✕ Remove
+                        Remove
                       </button>
                     </li>
                   ))}
@@ -975,43 +1234,43 @@ function App() {
             )}
 
             <button type="submit" disabled={loading} style={btnStyle}>
-              {loading ? 'Saving...' : 'Create Package & Get ID'}
+              {loading ? 'Processing...' : 'Create Package & Generate ID'}
             </button>
           </form>
 
           {createdIds.length > 0 && (
             <div style={receiptStyle}>
-              <h3 style={{margin: '0 0 15px 0'}}>Newly created packages:</h3>
+              <h3 style={{margin: '0 0 15px 0', color: '#047857'}}>Newly created packages:</h3>
               {createdIds.map(id => (
-                <div key={id} style={{marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #c6f6d5'}}>
-                  <h1 style={{fontSize: '50px', margin: '10px 0'}}>#{id}</h1>
+                <div key={id} style={{marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #a7f3d0'}}>
+                  <h1 style={{fontSize: '42px', margin: '10px 0', color: '#065f46'}}>#{id}</h1>
                   <div style={{display: 'flex', justifyContent: 'center'}}>
-                    <QRCodeSVG value={id.toString()} size={100} />
+                    <QRCodeSVG value={id.toString()} size={110} />
                   </div>
                   <br />
-                  <button onClick={() => printLabel(id)} style={printBtn}>🖨️ Print label for #{id}</button>
+                  <button onClick={() => printLabel(id)} style={printBtn}>Print Label for #{id}</button>
                 </div>
               ))}
             </div>
           )}
 
           {myShipments.length > 0 && (
-            <div style={{marginTop: '30px'}}>
+            <div style={{marginTop: '40px'}}>
               <h2>My Packages ({currentUser.name})</h2>
               {myShipments.map(s => {
                 const isExpanded = expandedPkg === s.id;
                 const attachedFiles = getFiles(s.file_url);
-                const borderColor = s.status === 'Rejected' ? '#e53e3e' : '#cbd5e0';
+                const borderColor = s.status === 'Rejected' ? '#ef4444' : 'transparent';
                 
                 return (
                   <div 
                     key={s.id} 
-                    style={{...shipmentCard, background: '#fff', flexDirection: 'column', alignItems: 'stretch', cursor: 'pointer', border: `2px solid ${borderColor}`}}
+                    style={{...shipmentCard, flexDirection: 'column', alignItems: 'stretch', border: `1px solid ${borderColor === 'transparent' ? '#e2e8f0' : borderColor}`}}
                     onClick={() => { setExpandedPkg(isExpanded ? null : s.id); setCommentInput(''); setCommentFile(null); }}
                   >
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                      <div><strong>#{s.id}</strong> - <span style={statusBadge(s.status)}>{s.status}</span></div>
-                      <div style={{color: '#a0aec0', fontSize: '12px'}}>{isExpanded ? '▲ Hide' : '▼ Show info & comments'}</div>
+                      <div><strong style={{fontSize: '16px'}}>#{s.id}</strong> - <span style={statusBadge(s.status)}>{s.status}</span></div>
+                      <div style={{color: '#64748b', fontSize: '13px', fontWeight: '500'}}>{isExpanded ? 'Hide Details' : 'Show Details'}</div>
                     </div>
                     
                     {isExpanded && renderExpandedContent(s, attachedFiles, true)}
@@ -1028,34 +1287,34 @@ function App() {
         <section>
           <h1>Logistics Overview</h1>
           
-          <div style={{...cardStyle, background: '#edf2f7', padding: '15px', marginBottom: '15px'}}>
+          <div style={{...cardStyle, padding: '20px'}}>
             
-            <div style={{display: 'flex', gap: '5px', marginBottom: '10px'}}>
+            <div style={{display: 'flex', gap: '8px', marginBottom: '16px'}}>
               <input 
-                placeholder="🔍 Search ID, Name, Tracking..." 
+                placeholder="Search ID, Name, Tracking..." 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
-                style={{...inputStyle, border: '2px solid #3182ce', marginBottom: 0, flex: 1}} 
+                style={{...inputStyle, border: '2px solid #cbd5e1', marginBottom: 0, flex: 1}} 
               />
               <button 
                 onClick={() => setSearchScannerActive(!searchScannerActive)}
-                style={{...smallBtn, background: searchScannerActive ? '#e53e3e' : '#3182ce', padding: '12px', fontSize: '14px'}}
+                style={{...smallBtn, background: searchScannerActive ? '#ef4444' : '#0f172a', padding: '0 20px', fontSize: '14px'}}
               >
-                {searchScannerActive ? 'Cancel Scan' : '📷 Scan to Find'}
+                {searchScannerActive ? 'Cancel Scan' : 'Scan to Find'}
               </button>
             </div>
 
             {searchScannerActive && (
-               <div style={{background: '#000', borderRadius: '10px', overflow: 'hidden', marginBottom: '10px'}}>
+               <div style={{background: '#000', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)'}}>
                  <div id="search-reader" style={{ width: '100%' }}></div>
                </div>
             )}
             
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px'}}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px'}}>
               <div>
-                <label style={filterLabelStyle}>Status</label>
+                <label style={filterLabelStyle}>Status Filter</label>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={selectStyle}>
-                  <option value="All">All</option>
+                  <option value="All">All Statuses</option>
                   <option value="Waiting">Waiting (To be picked up)</option>
                   <option value="Picked Up">Picked Up (At warehouse)</option>
                   <option value="Booked">Booked (Awaiting carrier)</option>
@@ -1064,13 +1323,13 @@ function App() {
                 </select>
               </div>
               <div>
-                <label style={filterLabelStyle}>Pickup Location</label>
+                <label style={filterLabelStyle}>Location Filter</label>
                 <select value={filterLocation} onChange={e => setFilterLocation(e.target.value)} style={selectStyle}>
                   {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                 </select>
               </div>
               <div>
-                <label style={filterLabelStyle}>Sort</label>
+                <label style={filterLabelStyle}>Sort Order</label>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={selectStyle}>
                   <option value="newest">Newest first</option>
                   <option value="oldest">Oldest first</option>
@@ -1079,22 +1338,22 @@ function App() {
             </div>
           </div>
           
-          <div style={{marginBottom: '15px', fontSize: '14px', fontWeight: 'bold', color: '#4a5568', display: 'flex', justifyContent: 'space-between'}}>
+          <div style={{marginBottom: '16px', fontSize: '14px', fontWeight: '600', color: '#64748b', display: 'flex', justifyContent: 'space-between', padding: '0 4px'}}>
             <span>Showing {processedShipments.length} packages</span>
-            <span style={{color: '#e53e3e'}}>{shipments.filter(s => s.status === 'Waiting').length} packages waiting total</span>
+            <span style={{color: '#ef4444'}}>{shipments.filter(s => s.status === 'Waiting').length} waiting total</span>
           </div>
 
-          {processedShipments.length === 0 && <p>No packages match the filters.</p>}
+          {processedShipments.length === 0 && <div style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>No packages match the current filters.</div>}
           
           {processedShipments.map(s => {
             const isExpanded = expandedPkg === s.id;
             const attachedFiles = getFiles(s.file_url);
             
-            let borderCol = '#ecc94b'; 
-            if (s.status === 'Picked Up') borderCol = '#4299e1'; 
-            else if (s.status === 'Booked') borderCol = '#ed8936'; 
-            else if (s.status === 'Sent') borderCol = '#48bb78'; 
-            else if (s.status === 'Rejected') borderCol = '#e53e3e'; 
+            let borderCol = '#fbbf24'; 
+            if (s.status === 'Picked Up') borderCol = '#60a5fa'; 
+            else if (s.status === 'Booked') borderCol = '#fb923c'; 
+            else if (s.status === 'Sent') borderCol = '#34d399'; 
+            else if (s.status === 'Rejected') borderCol = '#f87171'; 
 
             return (
               <div 
@@ -1104,24 +1363,24 @@ function App() {
               >
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                   <div style={{flex: 1}}>
-                    <div style={{fontWeight: 'bold', fontSize: '18px'}}>
+                    <div style={{fontWeight: '700', fontSize: '17px', color: '#1e293b'}}>
                       #{s.id} - {s.location}
-                      {s.comments && <span style={{fontSize:'12px', marginLeft:'10px'}} title="Has comments">💬</span>}
+                      {s.comments && <span style={{fontSize:'12px', marginLeft:'8px', color: '#3b82f6', background: '#eff6ff', padding: '2px 6px', borderRadius: '4px'}} title="Has comments">Commented</span>}
                     </div>
-                  <div style={{fontSize: '14px', color: '#555'}}>
-                      {s.sender_name} {s.sender_email ? `(${s.sender_email})` : ''} | <span style={statusBadge(s.status)}>{s.status}</span>
+                    <div style={{fontSize: '13px', color: '#64748b', marginTop: '4px'}}>
+                      {s.sender_name} {s.sender_email ? `(${s.sender_email})` : ''} <span style={{margin: '0 8px', color: '#cbd5e1'}}>|</span> <span style={statusBadge(s.status)}>{s.status}</span>
                     </div>
                   </div>
 
-                  <div style={{display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end'}}>
-                    <div style={{display: 'flex', gap: '5px'}} onClick={e => e.stopPropagation()}>
-                      {s.status === 'Waiting' && <button onClick={() => handleStatusUpdate(s.id, 'Rejected', s.sender_email)} style={{...smallBtn, background: '#e53e3e'}}>Reject</button>}
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end'}}>
+                    <div style={{display: 'flex', gap: '6px'}} onClick={e => e.stopPropagation()}>
+                      {s.status === 'Waiting' && <button onClick={() => handleStatusUpdate(s.id, 'Rejected', s.sender_email)} style={{...smallBtn, background: '#ef4444'}}>Reject</button>}
                       {s.status === 'Waiting' && <button onClick={() => handleStatusUpdate(s.id, 'Picked Up', s.sender_email)} style={smallBtn}>Pick Up</button>}
                       
-                      {s.status === 'Picked Up' && <button onClick={() => handleStatusUpdate(s.id, 'Booked', s.sender_email)} style={{...smallBtn, background: '#dd6b20'}}>Book</button>}
-                      {s.status === 'Booked' && <button onClick={() => handleStatusUpdate(s.id, 'Sent', s.sender_email)} style={{...smallBtn, background: '#2f855a'}}>Send</button>}
+                      {s.status === 'Picked Up' && <button onClick={() => handleStatusUpdate(s.id, 'Booked', s.sender_email)} style={{...smallBtn, background: '#ea580c'}}>Book</button>}
+                      {s.status === 'Booked' && <button onClick={() => handleStatusUpdate(s.id, 'Sent', s.sender_email)} style={{...smallBtn, background: '#16a34a'}}>Send</button>}
                     </div>
-                    <div style={{color: '#a0aec0', fontSize: '12px', marginTop: '5px'}}>{isExpanded ? '▲ Hide' : '▼ Show info'}</div>
+                    <div style={{color: '#94a3b8', fontSize: '12px', fontWeight: '500'}}>{isExpanded ? 'Hide Details' : 'Show Details'}</div>
                   </div>
                 </div>
                 
@@ -1136,47 +1395,48 @@ function App() {
       {view === 'admin' && currentUser?.role === 'admin' && (
         <section>
           <h1>Administration</h1>
-          <p style={{fontSize: '14px', color: '#4a5568'}}>Manage users, approvals, and roles here.</p>
+          <p style={{fontSize: '14px', color: '#64748b', marginBottom: '24px'}}>Manage users, approvals, and system roles.</p>
           
-          <div style={cardStyle}>
-            {allUsers.length === 0 ? <p>Loading users...</p> : (
+          <div style={{...cardStyle, padding: '0', overflow: 'hidden'}}>
+            {allUsers.length === 0 ? <p style={{padding: '20px'}}>Loading users...</p> : (
               <div style={{overflowX: 'auto'}}>
-                <table style={{width: '100%', minWidth: '500px', textAlign: 'left', fontSize: '14px', borderCollapse: 'collapse'}}>
+                <table style={{width: '100%', minWidth: '600px', textAlign: 'left', fontSize: '14px', borderCollapse: 'collapse'}}>
                   <thead>
-                    <tr style={{borderBottom: '2px solid #e2e8f0'}}>
-                      <th style={{padding: '10px 0'}}>User</th>
-                      <th style={{padding: '10px 0'}}>Status</th>
-                      <th style={{padding: '10px 0'}}>Role</th>
-                      <th style={{padding: '10px 0'}}>Alerts & Requests</th>
+                    <tr style={{background: '#f8fafc', borderBottom: '1px solid #e2e8f0'}}>
+                      <th style={{padding: '16px 20px', color: '#475569', fontWeight: '600'}}>User Details</th>
+                      <th style={{padding: '16px 20px', color: '#475569', fontWeight: '600'}}>Access Status</th>
+                      <th style={{padding: '16px 20px', color: '#475569', fontWeight: '600'}}>System Role</th>
+                      <th style={{padding: '16px 20px', color: '#475569', fontWeight: '600'}}>Alerts & Requests</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allUsers.map(u => (
-                      <tr key={u.id} style={{borderBottom: '1px solid #e2e8f0'}}>
-                        <td style={{padding: '10px 0', verticalAlign: 'top'}}>
-                          <strong>{u.name}</strong><br />
-                          <span style={{color: '#718096', fontSize: '12px'}}>{u.email}</span>
+                    {allUsers.map((u, index) => (
+                      <tr key={u.id} style={{borderBottom: index === allUsers.length - 1 ? 'none' : '1px solid #e2e8f0', background: '#fff'}}>
+                        <td style={{padding: '16px 20px', verticalAlign: 'top'}}>
+                          <strong style={{color: '#1e293b'}}>{u.name}</strong><br />
+                          <span style={{color: '#64748b', fontSize: '13px'}}>{u.email}</span>
                         </td>
-                        <td style={{padding: '10px 0', verticalAlign: 'top'}}>
+                        <td style={{padding: '16px 20px', verticalAlign: 'top'}}>
                           <button 
                             onClick={() => toggleUserApproval(u.id, u.is_approved)}
                             style={{
                               ...smallBtn, 
-                              background: u.is_approved ? '#48bb78' : '#e53e3e',
-                              padding: '6px 10px'
+                              background: u.is_approved ? '#10b981' : '#ef4444',
+                              padding: '6px 12px',
+                              boxShadow: 'none'
                             }}
                           >
-                            {u.is_approved ? '✅ Approved' : '❌ Pending'}
+                            {u.is_approved ? 'Approved' : 'Pending'}
                           </button>
                         </td>
-                        <td style={{padding: '10px 0', verticalAlign: 'top'}}>
+                        <td style={{padding: '16px 20px', verticalAlign: 'top'}}>
                           {u.email === 'admin@hoganas.com' ? (
-                            <span style={{fontWeight: 'bold', color: '#2b6cb0'}}>Super Admin</span>
+                            <span style={{fontWeight: '700', color: '#4f46e5', background: '#e0e7ff', padding: '4px 10px', borderRadius: '6px', fontSize: '12px'}}>Super Admin</span>
                           ) : (
                             <select 
                               value={u.role} 
                               onChange={(e) => changeUserRole(u.id, e.target.value)}
-                              style={{...selectStyle, padding: '4px', width: 'auto'}}
+                              style={{...selectStyle, padding: '6px 10px', width: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1'}}
                             >
                               <option value="user">User</option>
                               <option value="logistics">Logistics</option>
@@ -1184,32 +1444,32 @@ function App() {
                             </select>
                           )}
                         </td>
-                        <td style={{padding: '10px 0', verticalAlign: 'top'}}>
+                        <td style={{padding: '16px 20px', verticalAlign: 'top'}}>
                           {u.password_reset_requested && (
-                            <div style={{marginBottom: '5px', padding: '8px', background: '#fed7d7', borderRadius: '4px', fontSize: '12px'}}>
-                              <strong>🔑 Reset Requested</strong>
+                            <div style={{marginBottom: '8px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px'}}>
+                              <strong style={{color: '#991b1b', fontSize: '13px', display: 'block', marginBottom: '8px'}}>Reset Requested</strong>
                               <input 
                                 type="text" 
                                 placeholder="Set new password..." 
                                 value={adminPassInputs[u.id] || ''} 
                                 onChange={e => setAdminPassInputs({...adminPassInputs, [u.id]: e.target.value})} 
-                                style={{...inputStyle, padding: '4px', margin: '4px 0'}} 
+                                style={{...inputStyle, padding: '8px', margin: '0 0 8px 0', fontSize: '13px'}} 
                               />
-                              <button onClick={() => handleAdminResetPassword(u.id)} style={{...smallBtn, background: '#c53030'}}>Save & Clear</button>
+                              <button onClick={() => handleAdminResetPassword(u.id)} style={{...smallBtn, background: '#dc2626', width: '100%'}}>Save Password</button>
                             </div>
                           )}
                           {u.requested_role && (
-                            <div style={{padding: '8px', background: '#feebc8', borderRadius: '4px', fontSize: '12px'}}>
-                              <strong>🛡️ Role Request: <span style={{textTransform: 'capitalize'}}>{u.requested_role}</span></strong><br/>
-                              <span style={{fontStyle: 'italic', display: 'block', margin: '4px 0'}}>"{u.role_request_comment}"</span>
-                              <div style={{display: 'flex', gap: '5px'}}>
-                                <button onClick={() => handleApproveRole(u.id, u.requested_role, u.email)} style={{...smallBtn, background: '#48bb78'}}>Approve</button>
-                                <button onClick={() => handleDenyRole(u.id, u.email)} style={{...smallBtn, background: '#718096'}}>Deny</button>
+                            <div style={{padding: '12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px'}}>
+                              <strong style={{color: '#9a3412', fontSize: '13px', display: 'block'}}>Role Request: <span style={{textTransform: 'capitalize'}}>{u.requested_role}</span></strong>
+                              <span style={{fontStyle: 'italic', display: 'block', margin: '8px 0', color: '#78350f', fontSize: '13px', background: 'rgba(255,255,255,0.5)', padding: '6px', borderRadius: '4px'}}>"{u.role_request_comment}"</span>
+                              <div style={{display: 'flex', gap: '6px'}}>
+                                <button onClick={() => handleApproveRole(u.id, u.requested_role, u.email)} style={{...smallBtn, background: '#10b981', flex: 1}}>Approve</button>
+                                <button onClick={() => handleDenyRole(u.id, u.email)} style={{...smallBtn, background: '#64748b', flex: 1}}>Deny</button>
                               </div>
                             </div>
                           )}
                           {!u.password_reset_requested && !u.requested_role && (
-                            <span style={{color: '#a0aec0', fontSize: '12px'}}>No active requests</span>
+                            <span style={{color: '#94a3b8', fontSize: '13px', fontStyle: 'italic'}}>No active requests</span>
                           )}
                         </td>
                       </tr>
@@ -1225,70 +1485,71 @@ function App() {
       {/* --- STATS VIEW --- */}
       {view === 'stats' && (
         <section>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-            <h1 style={{ margin: 0, textAlign: 'center' }}>Dashboard</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
-              <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px'}}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <h1 style={{ margin: 0, textAlign: 'center' }}>Dashboard Overview</h1>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', alignItems: 'center', background: '#fff', padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px -4px rgba(15,23,42,0.1)' }}>
+              <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px'}}>
                 <input 
                   type="date" 
                   value={startDate} 
                   onChange={e => setStartDate(e.target.value)} 
-                  style={{...inputStyle, marginBottom: 0, padding: '6px', fontSize: '12px', width: 'auto'}} 
+                  style={{...inputStyle, marginBottom: 0, padding: '8px 12px', fontSize: '13px', width: 'auto'}} 
                 />
-                <span style={{color: '#718096', fontSize: '12px'}}>to</span>
+                <span style={{color: '#64748b', fontSize: '13px', fontWeight: '500'}}>to</span>
                 <input 
                   type="date" 
                   value={endDate} 
                   onChange={e => setEndDate(e.target.value)} 
-                  style={{...inputStyle, marginBottom: 0, padding: '6px', fontSize: '12px', width: 'auto'}} 
+                  style={{...inputStyle, marginBottom: 0, padding: '8px 12px', fontSize: '13px', width: 'auto'}} 
                 />
                 {(startDate || endDate) && (
-                  <button onClick={() => { setStartDate(''); setEndDate(''); }} style={{...smallBtn, background: '#718096', padding: '6px 8px'}}>Clear</button>
+                  <button onClick={() => { setStartDate(''); setEndDate(''); }} style={{...smallBtn, background: '#e2e8f0', color: '#475569', padding: '8px 12px', boxShadow: 'none'}}>Clear</button>
                 )}
               </div>
-              <button onClick={exportToExcel} style={{...smallBtn, background: '#38a169', padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap'}}>
-                📥 Export CSV
+              <div style={{width: '1px', height: '24px', background: '#e2e8f0', margin: '0 4px'}}></div>
+              <button onClick={exportToExcel} style={{...smallBtn, background: '#10b981', padding: '8px 16px', fontSize: '13px', whiteSpace: 'nowrap'}}>
+                Export CSV
               </button>
             </div>
           </div>
 
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px'}}>
-            <div style={{...cardStyle, textAlign: 'center', padding: '15px'}}>
-              <div style={{fontSize: '30px', fontWeight: 'bold', color: '#2b6cb0'}}>{statsShipments.length}</div>
-              <div style={{fontSize: '12px', color: '#718096', textTransform: 'uppercase'}}>Total Packages</div>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px'}}>
+            <div style={{...cardStyle, textAlign: 'center', padding: '24px 16px', marginBottom: 0}}>
+              <div style={{fontSize: '36px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em'}}>{statsShipments.length}</div>
+              <div style={{fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px'}}>Total Packages</div>
             </div>
-            <div style={{...cardStyle, textAlign: 'center', padding: '15px', borderColor: '#ecc94b'}}>
-              <div style={{fontSize: '30px', fontWeight: 'bold', color: '#d69e2e'}}>{statsShipments.filter(s=>s.status==='Waiting').length}</div>
-              <div style={{fontSize: '12px', color: '#718096', textTransform: 'uppercase'}}>Waiting for pickup</div>
+            <div style={{...cardStyle, textAlign: 'center', padding: '24px 16px', borderColor: '#fcd34d', marginBottom: 0}}>
+              <div style={{fontSize: '36px', fontWeight: '800', color: '#d97706', letterSpacing: '-0.02em'}}>{statsShipments.filter(s=>s.status==='Waiting').length}</div>
+              <div style={{fontSize: '12px', color: '#92400e', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px'}}>Waiting Pickup</div>
             </div>
-            <div style={{...cardStyle, textAlign: 'center', padding: '15px'}}>
-              <div style={{fontSize: '30px', fontWeight: 'bold', color: '#38a169'}}>{calculateLeadTime()}</div>
-              <div style={{fontSize: '12px', color: '#718096', textTransform: 'uppercase'}}>Avg Lead Time (Pickup)</div>
+            <div style={{...cardStyle, textAlign: 'center', padding: '24px 16px', marginBottom: 0}}>
+              <div style={{fontSize: '36px', fontWeight: '800', color: '#059669', letterSpacing: '-0.02em'}}>{calculateLeadTime()}</div>
+              <div style={{fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px'}}>Avg Lead Time</div>
             </div>
           </div>
 
-          <div style={{...cardStyle, marginBottom: '20px', height: '300px'}}>
-            <h3 style={{marginTop: 0}}>Status Distribution</h3>
+          <div style={{...cardStyle, marginBottom: '24px', height: '320px', padding: '24px'}}>
+            <h3 style={{marginTop: 0, color: '#1e293b', fontSize: '16px'}}>Status Distribution</h3>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={chartDataStatus} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({name, value}) => `${name}: ${value}`}>
+                <Pie data={chartDataStatus} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({name, value}) => `${name}: ${value}`} labelLine={false}>
                   {chartDataStatus.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div style={{...cardStyle, height: '350px'}}>
-            <h3 style={{marginTop: 0}}>Volume per Location</h3>
+          <div style={{...cardStyle, height: '360px', padding: '24px'}}>
+            <h3 style={{marginTop: 0, color: '#1e293b', fontSize: '16px'}}>Volume per Location</h3>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartDataLoc} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
-                <XAxis dataKey="name" tick={{fontSize: 12}} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="Count" fill="#3182ce" radius={[4, 4, 0, 0]} />
+              <BarChart data={chartDataLoc} margin={{ top: 10, right: 0, left: -20, bottom: 5 }}>
+                <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={{stroke: '#e2e8f0'}} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
+                <Bar dataKey="Count" fill="#4f46e5" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1298,265 +1559,16 @@ function App() {
       {/* --- SCANNER VIEW (BULK) --- */}
       {view === 'scanner' && (
         <section>
-          <h1>Bulk Scan</h1>
-          <p style={{fontSize: '14px', color: '#4a5568'}}>Scan packages consecutively. They will automatically be marked as "Picked Up".</p>
-          <div style={{background: '#000', borderRadius: '10px', overflow: 'hidden', marginBottom: '20px'}}>
-            <div id="reader" style={{ width: '100%' }}></div>
+          <h1>Bulk Scanner</h1>
+          <p style={{fontSize: '15px', color: '#475569', marginBottom: '24px'}}>Scan packages consecutively. They will automatically be marked as "Picked Up" in the system.</p>
+          <div style={{background: '#0f172a', borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', padding: '8px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'}}>
+            <div id="reader" style={{ width: '100%', borderRadius: '10px', overflow: 'hidden' }}></div>
           </div>
-          <button onClick={() => setView('logistics')} style={cancelBtn}>End Scanning</button>
+          <button onClick={() => setView('logistics')} style={{...cancelBtn, background: '#f1f5f9', border: 'none'}}>Cancel Scanning</button>
         </section>
       )}
     </div>
   )
 }
 
-// Styling Object
-// ============================================================
-// MODERN DESIGN SYSTEM — only styling tokens were changed.
-// All component logic above is untouched.
-// ============================================================
-
-// Inject global polish (font, body bg, focus rings, hover transitions) once.
-if (typeof document !== 'undefined' && !document.getElementById('hoganas-modern-css')) {
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
-  document.head.appendChild(link)
-
-  const s = document.createElement('style')
-  s.id = 'hoganas-modern-css'
-  s.innerHTML = `
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body, #root { background: #f4f6fb; }
-    body {
-      margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-      color: #0f172a;
-      -webkit-font-smoothing: antialiased;
-      background:
-        radial-gradient(1200px 600px at -10% -20%, #e0e7ff 0%, transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, #dbeafe 0%, transparent 55%),
-        linear-gradient(180deg, #f6f8fc 0%, #eef2f9 100%);
-      background-attachment: fixed;
-    }
-    button { font-family: inherit; transition: transform .12s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease; letter-spacing: .01em; }
-    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px -10px rgba(15,23,42,.25); }
-    button:active:not(:disabled) { transform: translateY(0); }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    input, select, textarea { font-family: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #6366f1 !important;
-      box-shadow: 0 0 0 4px rgba(99,102,241,.15);
-    }
-    a { transition: opacity .15s; }
-    a:hover { opacity: .8; }
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    @keyframes hg-fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-    .hg-card, [data-hg-card] { animation: hg-fadein .25s ease both; }
-  `
-  document.head.appendChild(s)
-}
-
-const containerStyle = {
-  width: '100%',
-  maxWidth: '720px',
-  margin: 'auto',
-  padding: '28px 20px 80px',
-  boxSizing: 'border-box',
-  fontFamily: "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
-  color: '#0f172a',
-  minHeight: '100vh'
-}
-
-const navStyle = {
-  display: 'flex',
-  gap: '6px',
-  marginBottom: '28px',
-  flexWrap: 'wrap',
-  padding: '6px',
-  background: 'rgba(255,255,255,0.7)',
-  border: '1px solid rgba(226,232,240,0.9)',
-  borderRadius: '14px',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  boxShadow: '0 6px 20px -12px rgba(15,23,42,0.18)'
-}
-
-const navBtn = {
-  flex: 1,
-  padding: '10px 12px',
-  cursor: 'pointer',
-  border: '1px solid transparent',
-  borderRadius: '10px',
-  background: 'transparent',
-  color: '#475569',
-  fontSize: '13px',
-  fontWeight: 600,
-  letterSpacing: '0.01em'
-}
-
-const activeNavBtn = {
-  ...navBtn,
-  background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-  color: '#fff',
-  borderColor: 'transparent',
-  boxShadow: '0 8px 18px -8px rgba(79,70,229,0.55)'
-}
-
-const scannerBtn = {
-  ...navBtn,
-  background: 'linear-gradient(135deg, #ef4444 0%, #f43f5e 100%)',
-  color: '#fff',
-  borderColor: 'transparent',
-  boxShadow: '0 8px 18px -8px rgba(239,68,68,0.5)'
-}
-
-const cardStyle = {
-  background: 'rgba(255,255,255,0.85)',
-  padding: '22px',
-  borderRadius: '18px',
-  marginBottom: '20px',
-  border: '1px solid rgba(226,232,240,0.9)',
-  boxShadow: '0 10px 30px -18px rgba(15,23,42,0.25), 0 2px 6px -3px rgba(15,23,42,0.06)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)'
-}
-
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  padding: '12px 14px',
-  marginBottom: '12px',
-  borderRadius: '10px',
-  border: '1px solid #e2e8f0',
-  background: '#fff',
-  color: '#0f172a',
-  boxSizing: 'border-box',
-  fontSize: '15px',
-  fontFamily: 'inherit'
-}
-
-const selectStyle = { ...inputStyle, padding: '8px 12px', marginBottom: '0', fontSize: '14px' }
-
-const filterLabelStyle = {
-  display: 'block',
-  fontSize: '11px',
-  fontWeight: 700,
-  marginBottom: '4px',
-  color: '#64748b',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em'
-}
-
-const btnStyle = {
-  width: '100%',
-  padding: '14px',
-  background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  fontSize: '15px',
-  fontWeight: 700,
-  letterSpacing: '0.01em',
-  boxShadow: '0 10px 24px -10px rgba(79,70,229,0.55)'
-}
-
-const shipmentCard = {
-  background: '#fff',
-  border: '1px solid #eef2f7',
-  padding: '16px 18px',
-  borderRadius: '14px',
-  marginBottom: '12px',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  transition: 'transform .15s ease, box-shadow .2s ease, border-color .2s',
-  boxShadow: '0 4px 14px -10px rgba(15,23,42,0.18)'
-}
-
-const smallBtn = {
-  padding: '8px 14px',
-  cursor: 'pointer',
-  border: 'none',
-  borderRadius: '9px',
-  background: '#0f172a',
-  color: '#fff',
-  fontSize: '12px',
-  fontWeight: 700,
-  letterSpacing: '0.02em',
-  boxShadow: '0 4px 10px -6px rgba(15,23,42,0.4)'
-}
-
-const fileLink = {
-  display: 'inline-block',
-  fontSize: '12px',
-  color: '#4f46e5',
-  textDecoration: 'none',
-  textAlign: 'left',
-  fontWeight: 600,
-  background: 'rgba(99,102,241,0.10)',
-  padding: '6px 10px',
-  borderRadius: '8px',
-  wordBreak: 'break-all',
-  border: '1px solid rgba(99,102,241,0.18)'
-}
-
-const cancelBtn = {
-  width: '100%',
-  padding: '14px',
-  background: '#fff',
-  color: '#475569',
-  border: '1px solid #e2e8f0',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  fontSize: '15px',
-  fontWeight: 700
-}
-
-const receiptStyle = {
-  textAlign: 'center',
-  padding: '22px',
-  background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 100%)',
-  border: '1px solid #a7f3d0',
-  borderRadius: '16px',
-  marginTop: '12px',
-  boxShadow: '0 10px 28px -18px rgba(16,185,129,0.45)'
-}
-
-const printBtn = {
-  display: 'inline-block',
-  marginTop: '10px',
-  padding: '9px 14px',
-  background: '#fff',
-  border: '1px solid #10b981',
-  color: '#047857',
-  borderRadius: '10px',
-  cursor: 'pointer',
-  fontWeight: 700
-}
-
-const statusBadge = (status) => {
-  let bg = 'linear-gradient(135deg,#fef9c3,#fef3c7)'; let col = '#854d0e'; let border = '#fde68a';
-  if (status === 'Picked Up')      { bg = 'linear-gradient(135deg,#dbeafe,#e0e7ff)'; col = '#3730a3'; border = '#c7d2fe'; }
-  else if (status === 'Booked')    { bg = 'linear-gradient(135deg,#ffedd5,#fed7aa)'; col = '#9a3412'; border = '#fdba74'; }
-  else if (status === 'Sent')      { bg = 'linear-gradient(135deg,#dcfce7,#bbf7d0)'; col = '#166534'; border = '#86efac'; }
-  else if (status === 'Rejected')  { bg = 'linear-gradient(135deg,#fee2e2,#fecaca)'; col = '#991b1b'; border = '#fca5a5'; }
-
-  return {
-    background: bg,
-    color: col,
-    padding: '4px 10px',
-    borderRadius: '999px',
-    fontSize: '10.5px',
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    border: `1px solid ${border}`,
-    display: 'inline-block'
-  }
-}
 export default App
