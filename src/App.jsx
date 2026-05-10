@@ -265,10 +265,6 @@ const statusBadge = (status) => {
   }
 }
 
-// ============================================================
-// HUVUDAPPLIKATIONEN
-// ============================================================
-
 const getFiles = (fileString) => {
   if (!fileString) return []
   try {
@@ -278,6 +274,10 @@ const getFiles = (fileString) => {
     return [{ name: 'Attached file', url: fileString }]
   }
 }
+
+// ============================================================
+// HUVUDAPPLIKATIONEN
+// ============================================================
 
 function App() {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -324,6 +324,8 @@ function App() {
   const [createdIds, setCreatedIds] = useState([]) 
   const [loading, setLoading] = useState(false)
   const scannerRef = useRef(null)
+  const lastScannedRef = useRef({}) // NYTT: Minne för att förhindra dubbelscanning
+  const [scanMessage, setScanMessage] = useState('') // NYTT: Flytande notis vid scan
   
   const [expandedPkg, setExpandedPkg] = useState(null)
   const [commentInput, setCommentInput] = useState('') 
@@ -574,7 +576,15 @@ function App() {
     return () => supabase.removeChannel(channel)
   }, [fetchShipments, fetchNotifications, currentUser])
 
-  const handleStatusUpdate = useCallback(async (id, newStatus, senderEmail) => {
+  const handleStatusUpdate = useCallback(async (id, newStatus, senderEmail, skipPrompt = false) => {
+    // NYTT: Optimistisk UI Uppdatering - Uppdaterar lokalt direkt innan databasen har svarat
+    setShipments(prev => prev.map(s => {
+      if (s.id === id) {
+        return { ...s, status: newStatus }
+      }
+      return s;
+    }));
+
     let updateData = { status: newStatus }
     let notificationMsg = '';
 
@@ -585,7 +595,7 @@ function App() {
     }
 
     if (newStatus === 'Booked') {
-      const trackingNum = window.prompt("Enter tracking number (leave empty if not available):")
+      const trackingNum = skipPrompt ? null : window.prompt("Enter tracking number (leave empty if not available):")
       if (trackingNum) updateData.tracking_id = trackingNum
       notificationMsg = trackingNum ? `Package #${id} is booked. Tracking: ${trackingNum}` : `Package #${id} is booked.`;
     }
@@ -596,7 +606,10 @@ function App() {
 
     if (newStatus === 'Rejected') {
       const reason = window.prompt("Enter reason for rejection (Visible to sender):")
-      if (!reason) return; 
+      if (!reason) {
+        fetchShipments(); // Återställ UI om de avbryter
+        return; 
+      }
       
       const { data } = await supabase.from('shipments').select('comments').eq('id', id).single()
       const currentComments = data?.comments || ''
@@ -616,10 +629,13 @@ function App() {
     }
 
     const { error } = await supabase.from('shipments').update(updateData).eq('id', id)
-    if (!error && notificationMsg && senderEmail) {
+    if (error) {
+      console.error("Could not update status:", error.message)
+      fetchShipments(); // Återställ UI om det blir fel i databasen
+    } else if (notificationMsg && senderEmail) {
       sendNotification(senderEmail, `Status Update: ${newStatus}`, notificationMsg, id);
     }
-  }, [currentUser])
+  }, [currentUser, fetchShipments])
 
   const handleAddComment = async (id, currentComments, targetEmail) => {
     if (!commentInput.trim() && !commentFile) return;
@@ -652,15 +668,31 @@ function App() {
     }
   }
 
+  // NYTT: Blixtsnabb, intelligent Bulk Scanner
   useEffect(() => {
     if (view === 'scanner') {
       scannerRef.current = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 }, false)
       scannerRef.current.render((decodedText) => {
         const id = parseInt(decodedText, 10);
         if (isNaN(id)) return; 
-        supabase.from('shipments').select('sender_email').eq('id', id).single().then(({data}) => {
-          if (data) handleStatusUpdate(id, 'Picked Up', data.sender_email);
-          alert(`Package #${id} is picked up! Scan next.`);
+
+        const now = Date.now();
+        const lastScanned = lastScannedRef.current[id] || 0;
+        
+        // Förhindra dubbelscanning: ignorera om samma ID scannats de senaste 5 sekunderna
+        if (now - lastScanned < 5000) return; 
+
+        lastScannedRef.current[id] = now; // Uppdatera minnet för detta ID
+
+        supabase.from('shipments').select('sender_email, status').eq('id', id).single().then(({data}) => {
+          if (data && data.status !== 'Picked Up') {
+            handleStatusUpdate(id, 'Picked Up', data.sender_email, true);
+            setScanMessage(`Package #${id} picked up!`);
+            setTimeout(() => setScanMessage(''), 3000); // Tar bort notisen efter 3 sek
+          } else if (data && data.status === 'Picked Up') {
+            setScanMessage(`Package #${id} is already Picked Up.`);
+            setTimeout(() => setScanMessage(''), 3000);
+          }
         });
       }, () => {})
     }
@@ -959,7 +991,7 @@ function App() {
           <h1 style={{textAlign: 'center', fontWeight: '800'}}>
             {authMode === 'login' ? 'Log In' : authMode === 'register' ? 'Create Account' : 'Reset Password'}
           </h1>
-          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096', marginBottom: '25px'}}>Höganäs Internal Logistics Portal</p>
+          <p style={{textAlign: 'center', fontSize: '14px', color: '#718096', marginBottom: '25px'}}>Höganäs Logistics Portal</p>
           
           {authError && <div style={{background: '#fed7d7', color: '#c53030', padding: '10px', borderRadius: '5px', marginBottom: '15px', fontSize: '13px'}}>{authError}</div>}
           
@@ -1018,7 +1050,7 @@ function App() {
     <div style={containerStyle}>
       
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-        <div style={{fontSize: '22px', fontWeight: '800', letterSpacing: '-0.02em', color: '#1e293b'}}>Höganäs Internal Logistics Portal</div>
+        <div style={{fontSize: '22px', fontWeight: '800', letterSpacing: '-0.02em', color: '#1e293b'}}>Höganäs Logistics</div>
         
         <div style={{position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center'}} onClick={() => setView('notifications')}>
           <div style={{
@@ -1560,11 +1592,16 @@ function App() {
       {view === 'scanner' && (
         <section>
           <h1>Bulk Scanner</h1>
+          {scanMessage && (
+            <div style={{background: '#10b981', color: 'white', padding: '10px 15px', borderRadius: '8px', marginBottom: '16px', fontWeight: '600', boxShadow: '0 4px 6px rgba(16,185,129,0.2)'}}>
+              {scanMessage}
+            </div>
+          )}
           <p style={{fontSize: '15px', color: '#475569', marginBottom: '24px'}}>Scan packages consecutively. They will automatically be marked as "Picked Up" in the system.</p>
           <div style={{background: '#0f172a', borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', padding: '8px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'}}>
             <div id="reader" style={{ width: '100%', borderRadius: '10px', overflow: 'hidden' }}></div>
           </div>
-          <button onClick={() => setView('logistics')} style={{...cancelBtn, background: '#f1f5f9', border: 'none'}}>Cancel Scanning</button>
+          <button onClick={() => setView('logistics')} style={{...cancelBtn, background: '#f1f5f9', border: 'none'}}>Finish & Return</button>
         </section>
       )}
     </div>
